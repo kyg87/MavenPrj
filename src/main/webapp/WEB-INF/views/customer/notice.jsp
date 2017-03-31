@@ -273,12 +273,13 @@ nav>.h2 {
 	            </c:forEach> --%>
                </ul>
                <div><a href="">다음</a></div>
+               
             </div>    
 			
 			<div>
 				<span id ="more-button">더보기</span>
 			</div>
-			
+			<div><a href="notice-reg">등록</a></div>
 			</main>
 		</div>
 
