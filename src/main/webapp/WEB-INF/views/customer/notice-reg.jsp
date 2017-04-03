@@ -25,8 +25,9 @@
                      <td><input type="text" name = "title"/></td>
                   </tr>
                      <th>파일</th>
-                     <td><input type="file" name = "file"/></td>
-                  
+                     <td><input type="file" name = "files"/></td>
+                     <th>파일</th>
+                     <td><input type="file" name = "files"/></td>
                   <tr>                  
                      <td colspan="2">
                         <textarea rows="20" cols="80" name ="content"></textarea>

@@ -1,6 +1,16 @@
 package com.newlecture.web.controller;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
+
+import javax.security.auth.message.callback.PrivateKeyCallback.Request;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -24,8 +34,15 @@ import com.newlecture.web.data.view.NoticeView;
 public class CustomerController {
 
 	@Autowired
+	private ServletContext context;
+	
+	@Autowired
 	private NoticeDao noticeDao;
-
+	
+	
+	@Autowired
+	private NoticeFileDao noticeFileDao;
+	
 	@RequestMapping("notice")
 	/*@ResponseBody*/
 	public String notice(
@@ -39,9 +56,7 @@ public class CustomerController {
 		
 		return "/WEB-INF/views/customer/notice.jsp";
 	}
-	
-	@Autowired
-	private NoticeFileDao noticeFileDao;
+
 	@RequestMapping("notice-detail")
 	public String noticeDetail(
 			@RequestParam(value = "c",defaultValue = "1" )String code,Model model){
@@ -72,15 +87,73 @@ public class CustomerController {
 	}
 	
 	@RequestMapping(value= "notice-reg",method = RequestMethod.POST,produces ="text/txt;charset=UTF-8")
-	@ResponseBody
-	public String noticeReg(Notice notice,@RequestParam(value = "file") MultipartFile file)
+	public String noticeReg(Notice notice,@RequestParam(value = "files") List<MultipartFile> files) throws IOException
 	{
+		StringBuilder sb = new StringBuilder();
 		
-		return file.getOriginalFilename(); 
-		/*notice.setWriter("KKKKK");
+		
+		String path = context.getRealPath("/resources/upload");
+		
+		System.out.println("path: " + path);
+		
+		File d = new File(path);
+		//파일 업로드할 경로가 만들어지지 않는다면 만들어야함
+		if(!d.exists())//경로가 존재하지 않는다면
+			d.mkdir();
+		
+		byte[] buf = new byte[1024];
+		
+		for(MultipartFile file : files){
+			if(!file.isEmpty()){
+			String fileName = file.getOriginalFilename();
+			InputStream fis = file.getInputStream();
+			OutputStream fos = new FileOutputStream(path + File.separator + fileName);
+			//sb.append(file.getOriginalFilename());
+			
+			int len = 0;
+			
+			while((len = fis.read(buf)) > 0){
+				fos.write(buf, 0, len);
+			}
+			
+				fis.close();
+				fos.close();
+			}
+		}
+		
+		/*return path;
+		
+		return sb.toString();*/ 
+	
+		notice.setWriter("KKKKK");
 		noticeDao.add(notice);
 		
-		return notice.getTitle();
-		return "redirect:notice";*/
+		for(MultipartFile file : files){
+			if(!file.isEmpty()){
+			String fileName = file.getOriginalFilename();
+			
+			NoticeFile f = new NoticeFile();
+			
+			f.setNoticeCode(noticeDao.lastCode());
+			f.setSrc(fileName);
+			
+			noticeFileDao.add(f);
+			}
+		}
+		
+		return "redirect:notice";
+		
+	}
+	@RequestMapping(value= "notice-del",method = RequestMethod.GET)
+	public String noticeDel(
+			@RequestParam(value = "c" )String code)
+	{
+		
+		//NoticeDao noticeDao = new MySQLNoticeDao();
+		int result = noticeDao.delete(code);
+		
+		System.out.println(result);
+		
+		return "redirect:notice";
 	}
 }
